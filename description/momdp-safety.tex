@@ -1,0 +1,188 @@
+\documentclass{article}
+
+\usepackage{todonotes}
+\usepackage{amsmath}
+\usepackage[capitalize]{cleveref}
+
+\newtheorem{prop}{Proposition}
+
+\newcommand{\sspace}{\ensuremath{\mathcal{S}} }
+\newcommand{\aspace}{\ensuremath{\mathcal{A}} }
+\newcommand{\ospace}{\ensuremath{\mathcal{O}} }
+\newcommand{\tdist}{\ensuremath{\mathcal{T}} }
+\newcommand{\odist}{\ensuremath{\mathcal{Z}} }
+\newcommand{\reward}{\ensuremath{\mathcal{R}} }
+
+\title{Absolute Safety in Mixed Observability Markov Decision Processes}
+
+\begin{document}
+
+\maketitle
+
+The partially observable Markov decision process (POMDP) is a systematic framework for expressing sequential decision problems where state and outcome uncertainty are important. Although this class of problems is PSPACE complete, and thus unlikely to have efficient general solution methods, recent advances have demonstrated that useful approximate solutions to large POMDPs that represent problems of real-world importance can be found.
+
+There has been little work towards providing absolute safety guarantees (i.e. guarantees with probability 1) for POMDPs.
+The goal of this document is to describe one specific case where guaranteeing safety through reachability analysis is straightforward.
+This specific case is useful because it describes a wide variety of real-world problems, most notably human-robot interaction problems.
+
+Specifically, the class studied consists of MOMDPs (mixed observability Markov decision process) where the safety constraint depends only on the fully observable part of the state, though the dynamics can depend on the partially observable part.
+To guarantee safety, the action space is dynamically constrained so that all actions are safe and lead to safe states.
+
+The key concept is to consider the non-deterministic dynamics to be adversarial from a safety point of view and stochastic, with a partially-observable state, from the optimization point of view.
+Details are explained below.
+
+% The key to this is both the partially-observed state and the transition noise are replaced by adversarial disturbances, $d$.
+
+% \section{Notation Clarification}
+
+\section{Problem Description}
+
+% This section describes the safety assurances that we wish to make and the MOMDP that we wish to solve.
+% Since most POMDP solution techniques use a discrete-time formulation, we begin with discrete time.
+
+The general problem that we seek to solve is a multi-stage decision problem where an action $a \in \aspace$ is chosen at each step.
+The system dynamics are determined by a function $F$, which maps a fully observable component of the state, $x \in \mathcal{X}$, the action, and a non-deterministic $d \in \mathcal{D}$ to a new state\footnote{The term ``state'' is used loosely here. It should be noted that $x$ is not the complete Markov state for the probabilistic problem. In most cases the context should resolve ambiguity, but, when necessary, the terms ``fully observable state component'', which is always denoted $x$, and ``Markov state'', which is always denoted $s$, will be used for clarity}.
+That is, at each stage, $k$,
+\begin{equation}
+    x_{k+1} = F(x_k, a_k, d_k) \text{.}
+\end{equation}
+
+This problem is approached from two vantage points.
+From the safety standpoint discussed in \cref{sec:safety}, we seek to choose actions so that safety constraints will not be violated for any sequence of $d$'s.
+From an optimization standpoint, we seek to maximize the expected reward if the $d$'s are random variables with a known joint distributions.
+This optimization 
+
+\subsection{Safety (Discrete Time)} \label{sec:safety}
+
+In this document, safety will be defined with an \emph{instantaneous safety function}, $l(x)$, which maps every state in the fully observable state space, $\mathcal{X}$, to a real number.
+If $l(x) \geq 0$, then $x$ is considered instantaneously safe. If $l(x) < 0$, then $x$ is unsafe.
+
+To guarantee future safety, a control policy that will keep $x$ in an instantaneously safe region at all time in the future must exist.
+To reason about this concept, we introduce the \emph{safety function}, $L$, which will allow us to classify states and actions as safe or unsafe.
+$L$ represents the safety margin for the system at all times in the future.
+If $L(x) \geq 0$, then it is possible to avoid instantaneously unsafe states in the future, and $x$ is said to be a \emph{safe state}.  
+
+% Let $F: \mathcal{X} \times \aspace \times \mathcal{D} \to \mathcal{X}$ define the discrete-time dynamics of the system for each step, $k$ from $0$ to a horizon $K$, where $\mathcal{D}$ is a space of possible distrubances. 
+% That is, $x_{k+1} = F(x_k, a_k, d_k)$, where $a_k \in \aspace$ is a control input, and $d_k \in \mathcal{D}$ is a disturbance input.
+Let the action be determined by a function $a_k = u(x_k, k)$ and the disturbance by $d_k = d(x_k, a_k, k)$.
+The state-action safety function is defined as follows:
+
+\begin{equation}
+    L(x, a) = \underset{u}{\sup}\,\underset{d}{\inf}\,\underset{k}{\min}\,l(x_k) \\
+\end{equation}
+where
+\begin{equation*}
+    \begin{aligned}
+        x_1 &= F(x, a, d(x, a, 0)) \\
+        x_{k+1} &= F(x_k, u(x_k, k), d(x_k, u(x_k, k), k)) & \forall\, k \in \{1\,..\,K-1\} \text{.}
+    \end{aligned}
+\end{equation*}
+If $L(x, a) \geq 0$, $a$ is said to be a safe action at $x$. The state safety function is simply
+\begin{equation}
+    L(x) = \underset{a\in\aspace}{\sup}\,L(x,a) \text{.}
+\end{equation}
+
+Calculating $L(x,a)$ involves solving a Stackelberg game\todo{correct? Can we say anything about the computational complexity of this game? Is it any easier than a POMDP?}. Fortunately, in some cases, sufficient approximations may be calculated offline.
+
+% To guarantee future safety, a control policy that will keep $x$ in an instantaneously safe region at all time in the future must exist. This can be expressed in the following constraint satisfaction problem.
+% 
+% Let $F: \mathcal{X} \times \aspace \times \mathcal{D} \to \mathcal{X}$ define the discrete-time dynamics of the system up to a horizon $K$, where $\mathcal{D}$ is a space of possible distrubances. 
+% That is $x_{k+1} = F(x_k, a_k, d_k)$, where $a_k$ is a control input, and $d_k$ is a disturbance input.
+% Let the action be determined by a function $a_k = u(x_k, k)$ and the disturbance by $d_k = d(x_k, a_k, k)$. The safety problem is
+% \begin{equation}
+% \begin{aligned}
+%     & \underset{u}{\text{satisfy}} & & \underset{d}{\min} \underset{k \in \{1.. K\}}{\min} l(x_k) \geq 0 & \\
+%     & & & x_{k+1} = F(x_k, u(x_k, k), d(x_k, u(x_k, k), k)) & \forall\, k \in \{1..K\} \text{.}
+% \end{aligned}
+% \end{equation}
+% 
+% It is often helpful to classify 
+
+
+% Now, let $a: \mathcal{X} \times \{1,\ldots, K\} \to \aspace$ and $d: \mathcal{X} \times \aspace \times \{1, \ldots, K\} \to \mathcal{D}$, be control and disturbance functions.
+
+
+\subsection{Mixed Observability Markov Decision Process}
+
+From an optimization perspective, we assume that $\{d_k\}_{k=1}^K$ are random variables with a known joint distribution. Specifically, the nondeterministic dynamics are governed by a function $G$, so that
+\begin{equation}
+    d_k = G(s_k, v_k) \text{,}
+\end{equation}
+where $s_k \in \sspace$ is the Markov state of the system, consisting of the fully-observable state, $x_k$, and a partially observable state, $\theta_k \in \Theta$, and $v_k$ is a random variable that is independent at each time step.
+Crucially, the presence of the hidden state, $\theta$, which links $d_k$ between timesteps, allows for \emph{online learning} and the opportunity to make better decisions by gathering information.
+
+The optimization objective is to maximize the expected value of a reward function, $R$.
+\begin{equation}
+    \text{maximize}\, \text{E} \left[ \sum_{k=1}^K \reward(s_k, a_k) \right]
+    \label{eq:pomdpobj}
+\end{equation}
+
+This problem is a partially observable Markov decision process (POMDP).
+More specifically, it belongs to the class of mixed observability Markov decision processes.
+This MOMDP is defined as follows:
+
+\begin{itemize}
+    \item The \textbf{state space} is $\sspace = \mathcal{X} \times \Theta$.
+    \item The \textbf{action space} is $\aspace$.
+    \item The \textbf{observation space} is $\mathcal{X}$. Here we assume that there is no further observation than the fully observable state $x_k$, but it is straightforward to extend the problem to include partial information about $\theta_k$.
+    \item The \textbf{reward function} is \reward.
+    \item The \textbf{transition distribution} is implicitly defined by $F$, $G$, and a hidden state transition function, $F_\theta$, defined so that $\theta_{k+1} = F_\theta(s_k, a_k, w_k)$, where $w_k$ is a random variable that is independent at each time step. The combination of these functions will be denoted with $\tdist = (F, G, F_\theta)$.
+    \item The \textbf{observation distribution} is a Kronecker or Dirac delta function centered at $x_k$, i.e.\ the agent receives a perfect observation of $x_k$, and will be denoted compactly as $\odist$.
+\end{itemize}
+
+This POMDP will will be compactly represented as
+\begin{equation}
+    \mathcal{M} = (\sspace, \aspace, \ospace, \reward, \tdist, \odist) \text{.}
+\end{equation}
+
+The optimal solution to $\mathcal{M}$ is a policy, $\pi^*$ that maps the history of previous actions and observations to the next action to take to optimize \cref{eq:pomdpobj}.
+There has been a great deal of research into solving POMDPs approximately both online and offline, and the optimal solution will automatically learn about the hidden state $\theta$. However, if the problem is solved as formulated above, the policy may enter unsafe states.
+
+% A POMDP is described by a tuple $(\sspace, \aspace, \ospace, \reward, \tdist, \odist)$ (see [POMDP refs]). The particular MOMDP that we consider has a few special properties shown below, but the action space, $\aspace$, and reward function, $\reward$, have no special restrictions.
+% 
+% 
+% \subsubsection{States}
+% 
+% Each state, $s$, in the MOMDP state space, $\sspace$, should be decomposable into a fully-observable part, $x \in \mathcal{X}$, and a partially observable part, $\theta \in \Theta$, that is, $s = (x, \theta)$.
+% 
+% \subsubsection{Observations and observation model}
+% 
+% Each observation must include perfect information about the fully-observable state, $x$, but may also include stochastic information about the partially observable part, $\theta$.
+% 
+% \subsubsection{MOMDP Transition model}
+% 
+% The transition model has the following structure. The transition of the fully observable state is governed by the dynamics function, $F: \mathcal{X} \times \aspace \times \mathcal{D} \to \mathcal{X}$ and disturbance function, $G: \sspace \times \mathcal{W} \to \mathcal{D}$. Concretely, $x_{k+1} = F(x_k, a_k, G(s_k, w_k))$, where $w_k$ is a random variable that introduces outcome uncertainty to the system. % $F:\mathcal{X} \times \mathcal{\Theta} \times \mathcal{W} \to \mathcal{X}$. 
+% 
+% The non-deterministic dynamics are defined by a function $G$ that maps the Markov state, $s$, the action, and a random variable, $w \in \mathcal{W}$ into $\mathcal{D}$. The Markov state consists of $x$ and a partially observable state, $\theta \in \Theta$.
+
+\subsection{Safe MOMDP}
+
+To guarantee safety, we can prune the action space of $\mathcal{M}$ to only include safe actions. At each state, $x$, let the safe action space be defined as
+\begin{equation}
+    \aspace_\text{safe}(x) = \left\{a \in \aspace : L(x,a) \geq 0 \right\} \text{.}
+\end{equation}
+A new MOMDP, which is safe, as defined in \cref{prop:safe}, can be defined as
+\begin{equation}
+    \mathcal{M}_\text{safe} = (\sspace, \aspace_\text{safe}, \ospace, \reward, \tdist, \odist) \text{.}
+\end{equation}
+
+\begin{prop}
+    If $L(x_0)\geq 0$, then, for any policy for $\mathcal{M}_\text{safe}$, every state that can be reached is safe, i.e.\ $l(x_k) \geq 0 \, \forall\, k \in \{1..K\}$.
+    \label{prop:safe}
+\end{prop}
+
+\section{Continuous-time safety formulation}
+
+\todo[inline]{TODO}
+
+\section{Potential objections}
+
+\subsection{The optimal solution to the POMDP will automatically be safe if there is infinite cost assigned to instantaneously unsafe states.}
+
+\begin{itemize}
+    \item Yes, but it is hard to find optimal solutions.
+    \item We don't usually know exact probability distributions.
+    \item If the probability distributions are trained on data, we often will not see the worst-case $d_k$.
+\end{itemize}
+
+\end{document}
