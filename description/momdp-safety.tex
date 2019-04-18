@@ -50,7 +50,7 @@ That is, at each stage, $k$,
 This problem is approached from two vantage points.
 From the safety standpoint discussed in \cref{sec:safety}, we seek to choose actions so that safety constraints will not be violated for any sequence of $d$'s.
 From an optimization standpoint, we seek to maximize the expected reward if the $d$'s are random variables with a known joint distributions.
-This optimization 
+This optimization problem is formulated as a partially observable Markov decision process in \cref{sec:momdp}.
 
 \subsection{Safety (Discrete Time)} \label{sec:safety}
 
@@ -59,7 +59,7 @@ If $l(x) \geq 0$, then $x$ is considered instantaneously safe. If $l(x) < 0$, th
 
 To guarantee future safety, a control policy that will keep $x$ in an instantaneously safe region at all time in the future must exist.
 To reason about this concept, we introduce the \emph{safety function}, $L$, which will allow us to classify states and actions as safe or unsafe.
-$L$ represents the safety margin for the system at all times in the future.
+Intuitively, $L$ represents the minimum safety margin for all times in the future.
 If $L(x) \geq 0$, then it is possible to avoid instantaneously unsafe states in the future, and $x$ is said to be a \emph{safe state}.  
 
 % Let $F: \mathcal{X} \times \aspace \times \mathcal{D} \to \mathcal{X}$ define the discrete-time dynamics of the system for each step, $k$ from $0$ to a horizon $K$, where $\mathcal{D}$ is a space of possible distrubances. 
@@ -73,8 +73,8 @@ The state-action safety function is defined as follows:
 where
 \begin{equation*}
     \begin{aligned}
-        x_{k+1} &= F(x, a, d(x, a, 0)) \\
-        x_{i+1} &= F(x_i, u(x_i, i), d(x_i, u(x_i, i), i)) & \forall\, i \in \{k\,..\,K-1\} \text{.}
+        x_{k+1} &= F(x, a, d(x, a, k)) \\
+        x_{i+1} &= F(x_i, u(x_i, i), d(x_i, u(x_i, i), i)) & \forall\, i \in \{k+1\,..\,K-1\} \text{.}
     \end{aligned}
 \end{equation*}
 If $L(x, a, k) \geq 0$, $a$ is said to be a safe action at $x$. The state safety function is simply
@@ -82,7 +82,7 @@ If $L(x, a, k) \geq 0$, $a$ is said to be a safe action at $x$. The state safety
     L(x, k) = \underset{a\in\aspace}{\sup}\,L(x,a,k) \text{.}
 \end{equation}
 
-Calculating $L(x,a)$ involves solving a Stackelberg game\todo{correct? Can we say anything about the computational complexity of this game? Is it any easier than a POMDP?}. Fortunately, in some cases, sufficient approximations may be calculated offline.
+Calculating $L(x,a,k)$ involves solving a Stackelberg game\todo{correct? Can we say anything about the computational complexity of this game? Is it any easier than a POMDP?}. Fortunately, in some cases, sufficient approximations may be calculated offline.
 
 % To guarantee future safety, a control policy that will keep $x$ in an instantaneously safe region at all time in the future must exist. This can be expressed in the following constraint satisfaction problem.
 % 
@@ -102,7 +102,7 @@ Calculating $L(x,a)$ involves solving a Stackelberg game\todo{correct? Can we sa
 % Now, let $a: \mathcal{X} \times \{1,\ldots, K\} \to \aspace$ and $d: \mathcal{X} \times \aspace \times \{1, \ldots, K\} \to \mathcal{D}$, be control and disturbance functions.
 
 
-\subsection{Mixed Observability Markov Decision Process}
+\subsection{Mixed Observability Markov Decision Process} \label{sec:momdp}
 
 From an optimization perspective, we assume that $\{d_k\}_{k=1}^K$ are random variables with a known joint distribution. Specifically, the nondeterministic dynamics are governed by a function $G$, so that
 \begin{equation}
@@ -118,7 +118,7 @@ The optimization objective is to maximize the expected value of a reward functio
 \end{equation}
 
 This problem is a partially observable Markov decision process (POMDP).
-More specifically, it belongs to the class of mixed observability Markov decision processes.
+More specifically, it belongs to the class of mixed observability Markov decision processes (MOMDPs).
 This MOMDP is defined as follows:
 
 \begin{itemize}
@@ -161,7 +161,7 @@ To guarantee safety, we can prune the action space of $\mathcal{M}$ to only incl
 \begin{equation}
     \aspace_\text{safe}(x, k) = \left\{a \in \aspace : L(x,a,k) \geq 0 \right\} \text{.}
 \end{equation}
-A new MOMDP, which is safe, as defined in \cref{prop:safe}, can be defined as
+A new MOMDP, which is safe, as defined in \cref{prop:safe} below, can be defined as
 \begin{equation}
     \mathcal{M}_\text{safe} = (\sspace, \aspace_\text{safe}, \ospace, \reward, \tdist, \odist) \text{.}
 \end{equation}
