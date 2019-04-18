@@ -68,18 +68,18 @@ Let the action be determined by a function $a_k = u(x_k, k)$ and the disturbance
 The state-action safety function is defined as follows:
 
 \begin{equation}
-    L(x, a) = \underset{u}{\sup}\,\underset{d}{\inf}\,\underset{k}{\min}\,l(x_k) \\
+    L(x, a, k) = \underset{u}{\sup}\,\underset{d}{\inf}\,\underset{i}{\min}\,l(x_i) \\
 \end{equation}
 where
 \begin{equation*}
     \begin{aligned}
-        x_1 &= F(x, a, d(x, a, 0)) \\
-        x_{k+1} &= F(x_k, u(x_k, k), d(x_k, u(x_k, k), k)) & \forall\, k \in \{1\,..\,K-1\} \text{.}
+        x_{k+1} &= F(x, a, d(x, a, 0)) \\
+        x_{i+1} &= F(x_i, u(x_i, i), d(x_i, u(x_i, i), i)) & \forall\, i \in \{k\,..\,K-1\} \text{.}
     \end{aligned}
 \end{equation*}
-If $L(x, a) \geq 0$, $a$ is said to be a safe action at $x$. The state safety function is simply
+If $L(x, a, k) \geq 0$, $a$ is said to be a safe action at $x$. The state safety function is simply
 \begin{equation}
-    L(x) = \underset{a\in\aspace}{\sup}\,L(x,a) \text{.}
+    L(x, k) = \underset{a\in\aspace}{\sup}\,L(x,a,k) \text{.}
 \end{equation}
 
 Calculating $L(x,a)$ involves solving a Stackelberg game\todo{correct? Can we say anything about the computational complexity of this game? Is it any easier than a POMDP?}. Fortunately, in some cases, sufficient approximations may be calculated offline.
@@ -159,7 +159,7 @@ There has been a great deal of research into solving POMDPs approximately both o
 
 To guarantee safety, we can prune the action space of $\mathcal{M}$ to only include safe actions. At each state, $x$, let the safe action space be defined as
 \begin{equation}
-    \aspace_\text{safe}(x) = \left\{a \in \aspace : L(x,a) \geq 0 \right\} \text{.}
+    \aspace_\text{safe}(x, k) = \left\{a \in \aspace : L(x,a,k) \geq 0 \right\} \text{.}
 \end{equation}
 A new MOMDP, which is safe, as defined in \cref{prop:safe}, can be defined as
 \begin{equation}
@@ -167,7 +167,7 @@ A new MOMDP, which is safe, as defined in \cref{prop:safe}, can be defined as
 \end{equation}
 
 \begin{prop}
-    If $L(x_0)\geq 0$, then, for any policy for $\mathcal{M}_\text{safe}$, every state that can be reached is safe, i.e.\ $l(x_k) \geq 0 \, \forall\, k \in \{1..K\}$.
+    If $L(x_0, 0)\geq 0$, then, for any policy for $\mathcal{M}_\text{safe}$, every state that can be reached is safe, i.e.\ $l(x_k) \geq 0 \, \forall\, k \in \{1..K\}$.
     \label{prop:safe}
 \end{prop}
 
