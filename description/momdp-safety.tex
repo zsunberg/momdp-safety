@@ -42,7 +42,7 @@ Details are explained below.
 % Since most POMDP solution techniques use a discrete-time formulation, we begin with discrete time.
 
 The general problem that we seek to solve is a multi-stage decision problem where an action $a \in \aspace$ is chosen at each step.
-The system dynamics are determined by a function $F$, which maps a fully observable component of the state, $x \in \mathcal{X}$, the action, and a non-deterministic $d \in \mathcal{D}$ to a new state\footnote{The term ``state'' is used loosely here. It should be noted that $x$ is not the complete Markov state for the probabilistic problem. In most cases the context should resolve ambiguity, but, when necessary, the terms ``fully observable state component'', which is always denoted $x$, and ``Markov state'', which is always denoted $s$, will be used for clarity}.
+The system dynamics are determined by a function $F$, which maps a fully observable component of the state, $x \in \mathcal{X}$, the action, and a non-deterministic input, $d \in \mathcal{D}$, to a new state\footnote{The term ``state'' is used loosely here. It should be noted that $x$ is not the complete Markov state for the probabilistic problem. In most cases the context should resolve ambiguity, but, when necessary, the terms ``fully observable state component'', which is always denoted $x$, and ``Markov state'', which is always denoted $s$, will be used for clarity}.
 That is, at each stage, $k$,
 \begin{equation}
     x_{k+1} = F(x_k, a_k, d_k) \text{.}
