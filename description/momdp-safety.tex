@@ -3,6 +3,7 @@
 \usepackage{todonotes}
 \usepackage{amsmath}
 \usepackage[capitalize]{cleveref}
+\usepackage{amsthm}
 
 \newtheorem{prop}{Proposition}
 
@@ -58,7 +59,7 @@ In this document, safety will be defined with an \emph{instantaneous safety func
 If $l(x) \geq 0$, then $x$ is considered instantaneously safe. If $l(x) < 0$, then $x$ is unsafe.
 
 To guarantee future safety, a control policy that will keep $x$ in an instantaneously safe region at all time in the future must exist.
-To reason about this concept, we introduce the \emph{safety function}, $L$, which will allow us to classify states and actions as safe or unsafe.
+To reason about this concept, we introduce the \emph{safety value function} or simply \emph{safety function}, $L$, which will allow us to classify states and actions as safe or unsafe.
 Intuitively, $L$ represents the minimum safety margin for all times in the future.
 If $L(x) \geq 0$, then it is possible to avoid instantaneously unsafe states in the future, and $x$ is said to be a \emph{safe state}.  
 
@@ -155,21 +156,36 @@ There has been a great deal of research into solving POMDPs approximately both o
 % 
 % The non-deterministic dynamics are defined by a function $G$ that maps the Markov state, $s$, the action, and a random variable, $w \in \mathcal{W}$ into $\mathcal{D}$. The Markov state consists of $x$ and a partially observable state, $\theta \in \Theta$.
 
-\subsection{Safe MOMDP}
+\section{Safe MOMDPs}
 
 To guarantee safety, we can prune the action space of $\mathcal{M}$ to only include safe actions. At each state, $x$, let the safe action space be defined as
 \begin{equation}
     \aspace_\text{safe}(x, k) = \left\{a \in \aspace : L(x,a,k) \geq 0 \right\} \text{.}
 \end{equation}
-A new MOMDP, which is safe, as defined in \cref{prop:safe} below, can be defined as
+A new safe MOMDP, can be defined as
 \begin{equation}
     \mathcal{M}_\text{safe} = (\sspace, \aspace_\text{safe}, \ospace, \reward, \tdist, \odist) \text{.}
 \end{equation}
+This problem has the safety property defined in Proposition \ref{prop:safe}.
 
 \begin{prop}
     If $L(x_0, 0)\geq 0$, then, for any policy for $\mathcal{M}_\text{safe}$, every state that can be reached is safe, i.e.\ $l(x_k) \geq 0 \, \forall\, k \in \{1..K\}$.
     \label{prop:safe}
 \end{prop}
+
+\todo[inline]{TODO: write out proof. It is conceptually simple: No action can lead to a state where unsafe states can't be avoided in the future.}
+
+% \begin{proof}
+%     
+% \end{proof}
+
+% \begin{proof} (By Contradiction)
+% 
+%     % We will prove that 
+%     % By definition, any action available in $\mathcal{M}_\text{safe}$ has $L(x,a) \geq 0$. Thus, there exists a conditional is part of a conditional
+%     Suppose that $l(x_k) < 0$. 
+%     % L(x, a, k) = \underset{u}{\sup}\,\underset{d}{\inf}\,\underset{i}{\min}\,l(x_i) \\
+% \end{proof}
 
 \section{Continuous-time safety formulation}
 
@@ -180,8 +196,8 @@ A new MOMDP, which is safe, as defined in \cref{prop:safe} below, can be defined
 \subsection{The optimal solution to the POMDP will automatically be safe if there is infinite cost assigned to instantaneously unsafe states.}
 
 \begin{itemize}
-    \item Yes, but it is hard to find optimal solutions.
-    \item We don't usually know exact probability distributions.
+    \item Yes, but it is hard to find optimal solutions to POMDPs.
+    \item We don't usually know exact probability distributions, we may want to be safe with respect to disturbances that have zero probability.
     \item If the probability distributions are trained on data, we often will not see the worst-case $d_k$.
 \end{itemize}
 
