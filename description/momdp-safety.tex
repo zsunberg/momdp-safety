@@ -65,25 +65,24 @@ If $L(x) \geq 0$, then it is possible to avoid instantaneously unsafe states in 
 
 % Let $F: \mathcal{X} \times \aspace \times \mathcal{D} \to \mathcal{X}$ define the discrete-time dynamics of the system for each step, $k$ from $0$ to a horizon $K$, where $\mathcal{D}$ is a space of possible distrubances. 
 % That is, $x_{k+1} = F(x_k, a_k, d_k)$, where $a_k \in \aspace$ is a control input, and $d_k \in \mathcal{D}$ is a disturbance input.
-Let the action be determined by a function $a_k = u(x_k, k)$ and the disturbance by $d_k = d(x_k, a_k, k)$.
+Let the action be determined by a function $a_k = a(x_k, k)$ and the disturbance by $d_k = d(x_k, a_k, k)$.
 The state-action safety function is defined as follows:
 
 \begin{equation}
-    L(x, a, k) = \underset{u}{\sup}\,\underset{d}{\inf}\,\underset{i}{\min}\,l(x_i) \\
+    L(x_k, a_k, k) = \underset{a}{\sup}\,\underset{d}{\inf}\,\underset{1\leq i\leq K}{\min}\,l(x_i) \\
 \end{equation}
 where
 \begin{equation*}
     \begin{aligned}
-        x_{k+1} &= F(x, a, d(x, a, k)) \\
-        x_{i+1} &= F(x_i, u(x_i, i), d(x_i, u(x_i, i), i)) & \forall\, i \in \{k+1\,..\,K-1\} \text{.}
+        x_{i+1} &= F(x_i, a(x_i, i), d(x_i, a(x_i, i), i)) & \forall\, i \in \{k\,..\,K-1\} \text{.}
     \end{aligned}
 \end{equation*}
-If $L(x, a, k) \geq 0$, $a$ is said to be a safe action at $x$. The state safety function is simply
+If $L(x_k, a_k, k) \geq 0$, $a_k$ is said to be a safe action at $x_k$. The state safety function is simply
 \begin{equation}
-    L(x, k) = \underset{a\in\aspace}{\sup}\,L(x,a,k) \text{.}
+    L(x_k, k) = \underset{a_k\in\aspace}{\sup}\,L(x_k,a_k,k) \text{.}
 \end{equation}
 
-Calculating $L(x,a,k)$ involves solving a Stackelberg game\todo{correct? Can we say anything about the computational complexity of this game? Is it any easier than a POMDP?}. Fortunately, in some cases, sufficient approximations may be calculated offline.
+Calculating $L(x_k,a_k,k)$ involves solving a Stackelberg game\todo{correct? Can we say anything about the computational complexity of this game? Is it any easier than a POMDP?}. Fortunately, in some cases, sufficient approximations may be calculated offline.
 
 % To guarantee future safety, a control policy that will keep $x$ in an instantaneously safe region at all time in the future must exist. This can be expressed in the following constraint satisfaction problem.
 % 
