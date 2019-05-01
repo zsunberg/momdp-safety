@@ -14,7 +14,8 @@
 \newcommand{\odist}{\ensuremath{\mathcal{Z}} }
 \newcommand{\reward}{\ensuremath{\mathcal{R}} }
 
-\newcommand{\dstate}{\theta_\mathcal{D}}
+\newcommand{\hstate}{\eta}
+\newcommand{\dstate}{\theta}
 
 \title{Absolute Safety in Light Partially Observable Markov Decision Processes}
 
@@ -192,11 +193,14 @@ This problem has the safety property defined in Proposition \ref{prop:safe}.
 
 \todo[inline]{TODO}
 
-% \section{Extensions}
-% 
-% \begin{itemize}
-%     \item The safety function depends on $\dstate$
-% \end{itemize}
+\section{Extensions}
+
+\begin{itemize}
+    \item The safety function depends on $\dstate$. Then the safety game will become
+\begin{equation}
+    L(x_k, a_k, k) = \underset{a}{\sup}\,\underset{\dstate}{\inf}\,\underset{d}{\inf}\,\underset{1\leq i\leq K}{\min}\,l(x_i, \dstate) \\
+\end{equation}
+\end{itemize}
 
 \section{Potential objections}
 
