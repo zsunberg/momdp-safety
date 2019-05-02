@@ -5,6 +5,9 @@
 \usepackage[capitalize]{cleveref}
 \usepackage{amsthm}
 
+\usepackage{tikz}
+\usetikzlibrary{bayesnet}
+
 \newtheorem{prop}{Proposition}
 
 \newcommand{\sspace}{\ensuremath{\mathcal{S}} }
@@ -15,7 +18,10 @@
 \newcommand{\reward}{\ensuremath{\mathcal{R}} }
 
 \newcommand{\hstate}{\eta}
+\newcommand{\hsspace}{\mathcal{H}}
 \newcommand{\dstate}{\theta}
+\newcommand{\dsspace}{\Theta}
+\newcommand{\dset}{\mathcal{D}}
 
 \title{Absolute Safety in Light Partially Observable Markov Decision Processes}
 
@@ -41,7 +47,7 @@
 % Since most POMDP solution techniques use a discrete-time formulation, we begin with discrete time.
 
 The general problem that we seek to solve is a multi-stage decision problem where an action $a \in \aspace$ is chosen at each step.
-The system dynamics are determined by a function $F$, which maps a fully observable component of the state, $x \in \mathcal{X}$, the action, and a non-deterministic input, $d \in \mathcal{D}(x)$, to a new state\footnote{The term ``state'' is used loosely here. It should be noted that $x$ is not the complete Markov state for the probabilistic problem. In most cases the context should resolve ambiguity, but, when necessary, the terms ``fully observable state component'', which is always denoted $x$, and ``Markov state'', which is always denoted $s$, will be used for clarity}.
+The system dynamics are determined by a function $F$, which maps a fully observable component of the state, $x \in \mathcal{X}$, the action, and a non-deterministic input, $d \in \dset(x)$, to a new state\footnote{The term ``state'' is used loosely here. It should be noted that $x$ is not the complete Markov state for the probabilistic problem. In most cases the context should resolve ambiguity, but, when necessary, the terms ``fully observable state component'', which is always denoted $x$, and ``Markov state'', which is always denoted $s$, will be used for clarity}.
 That is, at each stage, $k$,
 \begin{equation}
     x_{k+1} = F(x_k, a_k, d_k) \text{.}
@@ -54,7 +60,7 @@ From an optimization standpoint, we seek to maximize the expected reward if the 
 This optimization problem is formulated as a partially observable Markov decision process in \cref{sec:momdp}.
 
 We consider a special case where there is a static, but partially observable state component, $\dstate$, that affects the disturbance set.
-Specifically, $\mathcal{D}(x,\dstate) \subseteq \mathcal{D}(x)$, is a set valued function of this partially observable state.
+Specifically, $\dset(x,\dstate) \subseteq \dset(x)$, is a set valued function of this partially observable state.
 
 \subsection{Safety (Discrete Time)} \label{sec:safety}
 
@@ -64,15 +70,16 @@ If $l(x) \geq 0$, then $x$ is considered instantaneously safe. If $l(x) < 0$, th
 To guarantee future safety, a control policy that will keep $x$ in an instantaneously safe region at all time in the future must exist.
 To reason about this concept, we introduce the \emph{safety value function} or simply \emph{safety function}, $L$, which will allow us to classify states and actions as safe or unsafe.
 Intuitively, $L$ represents the minimum safety margin for all times in the future.
-If $L(x) \geq 0$, then it is possible to avoid instantaneously unsafe states in the future, and $x$ is said to be a \emph{safe state}.  
+If $L(x, k, \tilde{\dsspace}) \geq 0$, then it is possible to avoid instantaneously unsafe states in the future given that $\dstate \in \tilde{\dsspace} \subseteq \dsspace$.
+In this case $x$ is said to be a \emph{safe state}.  
 
 % Let $F: \mathcal{X} \times \aspace \times \mathcal{D} \to \mathcal{X}$ define the discrete-time dynamics of the system for each step, $k$ from $0$ to a horizon $K$, where $\mathcal{D}$ is a space of possible distrubances. 
 % That is, $x_{k+1} = F(x_k, a_k, d_k)$, where $a_k \in \aspace$ is a control input, and $d_k \in \mathcal{D}$ is a disturbance input.
-Let the action be determined by a function $a_k = a(x_k, k)$ and the disturbance by $d_k = d(x_k, a_k, k)$.
+Let the action be determined by a function $a_k = a(x_k, k)$ and the disturbance by $d_k = d(x_k, a_k, k) \in \dset(x_k, \dstate)$\todo{Is this general enough to encompass unknown obstacles?}.
 The state-action safety function is defined as follows:
 
 \begin{equation}
-    L(x_k, a_k, k) = \underset{a}{\sup}\,\underset{d}{\inf}\,\underset{1\leq i\leq K}{\min}\,l(x_i) \\
+    L\left(x_k, a_k, k, \tilde{\dsspace}\right) = \underset{a}{\sup}\,\underset{\dstate \in \tilde{\dsspace}, d}{\inf}\,\underset{k\leq i\leq K}{\min}\,l(x_i) \\
 \end{equation}
 where
 \begin{equation*}
@@ -80,30 +87,17 @@ where
         x_{i+1} &= F(x_i, a(x_i, i), d(x_i, a(x_i, i), i)) & \forall\, i \in \{k\,..\,K-1\} \text{.}
     \end{aligned}
 \end{equation*}
-If $L(x_k, a_k, k) \geq 0$, $a_k$ is said to be a safe action at $x_k$. The state safety function is simply
+If $L\left(x_k, a_k, k, \tilde{\dsspace} \right) \geq 0$, $a_k$ is said to be a safe action at $x_k$. The state safety function is simply
 \begin{equation}
-    L(x_k, k) = \underset{a_k\in\aspace}{\sup}\,L(x_k,a_k,k) \text{.}
+    L\left(x_k, k, \tilde{\dsspace} \right) = \underset{a_k\in\aspace}{\sup}\,L\left(x_k,a_k,k, \tilde{\dsspace}\right) \text{.}
 \end{equation}
 
-Calculating $L(x_k,a_k,k)$ involves solving a Stackelberg game\todo{correct? Can we say anything about the computational complexity of this game? Is it any easier than a POMDP?}. Fortunately, in some cases, sufficient approximations may be calculated offline.
-
-% To guarantee future safety, a control policy that will keep $x$ in an instantaneously safe region at all time in the future must exist. This can be expressed in the following constraint satisfaction problem.
-% 
-% Let $F: \mathcal{X} \times \aspace \times \mathcal{D} \to \mathcal{X}$ define the discrete-time dynamics of the system up to a horizon $K$, where $\mathcal{D}$ is a space of possible distrubances. 
-% That is $x_{k+1} = F(x_k, a_k, d_k)$, where $a_k$ is a control input, and $d_k$ is a disturbance input.
-% Let the action be determined by a function $a_k = u(x_k, k)$ and the disturbance by $d_k = d(x_k, a_k, k)$. The safety problem is
-% \begin{equation}
-% \begin{aligned}
-%     & \underset{u}{\text{satisfy}} & & \underset{d}{\min} \underset{k \in \{1.. K\}}{\min} l(x_k) \geq 0 & \\
-%     & & & x_{k+1} = F(x_k, u(x_k, k), d(x_k, u(x_k, k), k)) & \forall\, k \in \{1..K\} \text{.}
-% \end{aligned}
-% \end{equation}
-% 
-% It is often helpful to classify 
-
-
-% Now, let $a: \mathcal{X} \times \{1,\ldots, K\} \to \aspace$ and $d: \mathcal{X} \times \aspace \times \{1, \ldots, K\} \to \mathcal{D}$, be control and disturbance functions.
-
+Calculating $L\left(x_k,a_k,k,\tilde{\dsspace}\right)$ involves solving a Stackelberg game\todo{correct? Can we say anything about the computational complexity of this game? Is it any easier than a POMDP?}. Fortunately, in some cases, sufficient approximations may be calculated offline%
+\footnote{
+Unfortunately, it is not true in general that
+\[ L\left(x_k, a_k, k, \tilde{\dsspace} \right) \geq \inf_{\dstate \in \tilde{\dsspace}} L\left(x_k, a_k, k, \{\dstate\} \right)\text{.}\]
+\todo[inline]{\footnotesize{I think...}}
+}.
 
 \subsection{Mixed Observability Markov Decision Process} \label{sec:momdp}
 
@@ -111,10 +105,14 @@ From an optimization perspective, we assume that $\{d_k\}_{k=1}^K$ are random va
 \begin{equation}
     d_k = G(s_k, v_k) \text{,}
 \end{equation}
-where $s_k \in \sspace$ is the Markov state of the system, consisting of the fully-observable state, $x_k$, and a partially observable state, $\theta_k \in \Theta$, and $v_k$ is a random variable that is independent at each time step.
-Crucially, the presence of the hidden state, $\theta$, which links $d_k$ between timesteps, allows for \emph{online learning} and the opportunity to make better decisions by gathering information.
+where $s_k \in \sspace$ is the Markov state of the system (see \cref{eq:markov}), and $v_k$ is a random variable that is independent at each time step.
+The Markov state consists of the fully-observable state, $x_k$, a partially observable state $\hstate_k \in \hsspace$, and the partially observable static parameter $\dstate_k \in \dsspace$, 
+\begin{equation} \label{eq:markov}
+    s_k = (x_k, \hstate_k, \dstate_k)
+\end{equation}
+Crucially, the presence of the hidden state, $(\hstate, \dstate)$, which links $d_k$ between timesteps, allows for \emph{online learning} and the opportunity to make better decisions by gathering information.
 
-The optimization objective is to maximize the expected value of a reward function, $R$.
+The optimization objective is to maximize the expected value of a reward function, $\reward$.
 \begin{equation}
     \text{maximize}\, \text{E} \left[ \sum_{k=1}^K \reward(s_k, a_k) \right]
     \label{eq:pomdpobj}
@@ -125,21 +123,22 @@ More specifically, it belongs to the class of mixed observability Markov decisio
 This MOMDP is defined as follows:
 
 \begin{itemize}
-    \item The \textbf{state space} is $\sspace = \mathcal{X} \times \Theta$.
+    \item The \textbf{state space} is $\sspace = \mathcal{X} \times \hsspace \times \dsspace$.
     \item The \textbf{action space} is $\aspace$.
-    \item The \textbf{observation space} is $\mathcal{X}$. Here we assume that there is no further observation than the fully observable state $x_k$, but it is straightforward to extend the problem to include partial information about $\theta_k$.
+    \item The \textbf{observation space} is $\ospace$. We assume that an observation $o_k \in \ospace$ contains perfect information about $x_k$, but may also contain information about $\hstate$ or $\dstate$.
     \item The \textbf{reward function} is \reward.
-    \item The \textbf{transition distribution} is implicitly defined by $F$, $G$, and a hidden state transition function, $F_\theta$, defined so that $\theta_{k+1} = F_\theta(s_k, a_k, w_k)$, where $w_k$ is a random variable that is independent at each time step. The combination of these functions will be denoted with $\tdist = (F, G, F_\theta)$.
-    \item The \textbf{observation distribution} is a Kronecker or Dirac delta function centered at $x_k$, i.e.\ the agent receives a perfect observation of $x_k$, and will be denoted compactly as $\odist$.
+    \item The \textbf{transition distribution} is implicitly defined by $F$, $G$, and a hidden state transition function, $F_\hstate$, defined so that $\hstate_{k+1} = F_\hstate(s_k, a_k, w_k)$, where $w_k$ is a random variable that is independent at each time step. The combination of these functions will be denoted with $\tdist = (F, G, F_\hstate)$.
+    % \item The \textbf{observation distribution} is a Kronecker or Dirac delta function centered at $x_k$, i.e.\ the agent receives a perfect observation of $x_k$, and will be denoted compactly as $\odist$.
+    \item The \textbf{observation distribution} is defined by $o_k = H(s_{k-1}, a_{k-1}, s_k, v_k)$. As stated above, we assume that $o_k$ contains perfect information about $x_k$.
 \end{itemize}
 
-This POMDP will will be compactly represented as
+This POMDP will will be compactly represented as.
 \begin{equation}
     \mathcal{M} = (\sspace, \aspace, \ospace, \reward, \tdist, \odist) \text{.}
 \end{equation}
 
 The optimal solution to $\mathcal{M}$ is a policy, $\pi^*$ that maps the history of previous actions and observations to the next action to take to optimize \cref{eq:pomdpobj}.
-There has been a great deal of research into solving POMDPs approximately both online and offline, and the optimal solution will automatically learn about the hidden state $\theta$. However, if the problem is solved as formulated above, the policy may enter unsafe states.
+There has been a great deal of research into solving POMDPs approximately both online and offline, and the optimal solution will automatically learn about the hidden state $(\hstate_k, \dstate)$. However, if the problem is solved as formulated above, the policy may enter unsafe states.
 
 % A POMDP is described by a tuple $(\sspace, \aspace, \ospace, \reward, \tdist, \odist)$ (see [POMDP refs]). The particular MOMDP that we consider has a few special properties shown below, but the action space, $\aspace$, and reward function, $\reward$, have no special restrictions.
 % 
@@ -162,7 +161,7 @@ There has been a great deal of research into solving POMDPs approximately both o
 
 To guarantee safety, we can prune the action space of $\mathcal{M}$ to only include safe actions. At each state, $x$, let the safe action space be defined as
 \begin{equation}
-    \aspace_\text{safe}(x, k) = \left\{a \in \aspace : L(x,a,k) \geq 0 \right\} \text{.}
+    \aspace_\text{safe}(x, k, \tilde{\dsspace}) = \left\{a \in \aspace : L\left(x,a,k,\tilde{\dsspace}\right) \geq 0 \right\} \text{.}
 \end{equation}
 A new safe MOMDP, can be defined as
 \begin{equation}
@@ -176,6 +175,11 @@ This problem has the safety property defined in Proposition \ref{prop:safe}.
 \end{prop}
 
 \todo[inline]{TODO: write out proof. It is conceptually simple: No action can lead to a state where unsafe states can't be avoided in the future.}
+
+\section{Learning about Safety}
+
+A key property of this formulation is that, by eliminating possible $\dstate$ from $\dsspace$, the size of $\tilde{\dsspace}$ can be reduced and $\aspace_\text{safe}$ enlarged.
+The optimal solution of $\mathcal{M}_\text{safe}$ will include active learning about this hidden state so that goals can be accomplished safely.
 
 % \begin{proof}
 %     
@@ -193,14 +197,14 @@ This problem has the safety property defined in Proposition \ref{prop:safe}.
 
 \todo[inline]{TODO}
 
-\section{Extensions}
-
-\begin{itemize}
-    \item The safety function depends on $\dstate$. Then the safety game will become
-\begin{equation}
-    L(x_k, a_k, k) = \underset{a}{\sup}\,\underset{\dstate}{\inf}\,\underset{d}{\inf}\,\underset{1\leq i\leq K}{\min}\,l(x_i, \dstate) \\
-\end{equation}
-\end{itemize}
+% \section{Extensions}
+% 
+% \begin{itemize}
+%     \item The safety function depends on $\dstate$. Then the safety game will become
+% \begin{equation}
+%     L(x_k, a_k, k) = \underset{a}{\sup}\,\underset{\dstate}{\inf}\,\underset{d}{\inf}\,\underset{1\leq i\leq K}{\min}\,l(x_i, \dstate) \\
+% \end{equation}
+% \end{itemize}
 
 \section{Potential objections}
 
